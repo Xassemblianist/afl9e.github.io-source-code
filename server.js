@@ -2,7 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
 const { v4: uuidv4 } = require("uuid");
-const os = require("os"); // SİSTEM BİLGİLERİ İÇİN EKLENDİ
+const os = require("os");
 const { exec } = require("child_process");
 
 const app = express();
@@ -31,7 +31,6 @@ app.use((req, res, next) => {
     next();
 });
 
-// ⛅ HAVA DURUMU API
 app.get("/api/weather", async (req, res) => {
     try {
         const url = "https://api.open-meteo.com/v1/forecast?latitude=36.94&longitude=30.85&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code&timezone=auto";
@@ -56,16 +55,14 @@ app.get("/api/weather", async (req, res) => {
     }
 });
 
-// 📊 YENİ GELİŞMİŞ SERVER STATUS API
 let gpuInfo = "Aranıyor / Dahili Grafik...";
 exec("lspci | grep -i vga", (err, stdout) => {
     if (!err && stdout) {
         let parts = stdout.split(":");
-        gpuInfo = parts[parts.length - 1].trim(); // Ekran kartı ismini ayıklar
+        gpuInfo = parts[parts.length - 1].trim();
     }
 });
 
-// 📊 YENİ GELİŞMİŞ SERVER STATUS API (CPU, GPU, GHz eklendi)
 app.get("/api/status", (req, res) => {
     const uptimeSec = Math.floor((Date.now() - startTime) / 1000);
 
@@ -77,7 +74,7 @@ app.get("/api/status", (req, res) => {
     const cpus = os.cpus();
     const load = os.loadavg();
     const cpuPercent = Math.round((load[0] / cpus.length) * 100) || 1;
-    const cpuSpeed = (cpus[0].speed / 1000).toFixed(2); // MHz'yi GHz'ye çevirir
+    const cpuSpeed = (cpus[0].speed / 1000).toFixed(2);
 
     res.json({
         status: "true",
@@ -123,5 +120,6 @@ app.post("/api/unban", (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Sunucu her yönden gelen isteklere açık: http://0.0.0.0:${PORT}`);
+    console.log(`Sunucu her yönden gelen isteklere açık: http://0.0.0.0:${PORT}`);
 });
+
