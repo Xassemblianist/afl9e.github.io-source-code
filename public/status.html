@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Durumu - AFL 9/E</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #030305; 
+            --card-bg: rgba(15, 15, 20, 0.55); 
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc; 
+            --text-muted: #94a3b8;
+            --accent-green: #10b981; 
+            --accent-blue: #3b82f6; 
+            --accent-purple: #c084fc;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            padding: 40px 20px; 
+            overflow-x: hidden; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .aurora-bg { position: fixed; inset: 0; z-index: -1; background: #020203; overflow: hidden; }
+        .aurora-blob { position: absolute; filter: blur(90px); opacity: 0.35; animation: float 15s infinite alternate ease-in-out; border-radius: 50%; will-change: transform;}
+        .blob-1 { top: 10%; left: 10%; width: 50vw; height: 50vw; background: radial-gradient(circle, var(--accent-green), transparent 60%); }
+        .blob-2 { bottom: 10%; right: 10%; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent-blue), transparent 60%); animation-delay: -5s; }
+        @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(40px, 40px) scale(1.1); } }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;}
+        header h1 { font-size: 2rem; background: linear-gradient(135deg, #fff, #93c5fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700;}
+        
+        .back-btn { background: rgba(255,255,255,0.03); padding: 12px 24px; border-radius: 12px; text-decoration: none; color: white; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; font-size: 0.9rem; backdrop-filter: blur(10px); font-weight: 500;}
+        .back-btn:hover { border-color: var(--accent-blue); box-shadow: 0 0 20px rgba(59,130,246,0.2); transform: translateY(-2px);}
+
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+
+        .card { 
+            background: var(--card-bg); 
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border); border-top: 1px solid rgba(255,255,255,0.15); border-left: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px; padding: 25px; transition: transform 0.2s, box-shadow 0.2s; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255,255,255,0.02);
+        }
+        
+        .card-title { font-size: 0.95rem; color: #fff; margin-bottom: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;}
+        .card-title i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+        .status-header { grid-column: span 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;}
+        .status-indicator { display: flex; align-items: center; gap: 15px; }
+        .status-dot { width: 16px; height: 16px; background: var(--accent-green); border-radius: 50%; box-shadow: 0 0 15px var(--accent-green); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); } 70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+
+        .big-val { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.2);}
+        .sub-val { font-size: 0.85rem; color: var(--text-muted); }
+        .info-tag { display: inline-block; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; margin-right: 6px; margin-top: 10px; color: #e2e8f0; }
+
+        .progress-bg { background: rgba(0,0,0,0.4); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 15px; border: 1px solid rgba(255,255,255,0.05);}
+        .progress-bar { height: 100%; width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(255,255,255,0.2);}
+
+        .logs-card { grid-column: span 2; }
+        .log-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px;}
+        .log-item { background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; border-left: 3px solid var(--accent-blue); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #d1d5db; border-top: 1px solid rgba(255,255,255,0.02); border-right: 1px solid rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.02);}
+
+        @media (max-width: 768px) { 
+            body { padding: 20px 15px; }
+            .aurora-blob { filter: blur(60px); }
+            .blob-1 { width: 120vw; height: 120vw; }
+            .blob-2 { width: 130vw; height: 130vw; }
+            .grid { grid-template-columns: 1fr; gap: 16px;} 
+            .status-header { grid-column: span 1; flex-direction: column; align-items: flex-start; } 
+            .logs-card { grid-column: span 1; } 
+            header { flex-direction: column; align-items: stretch; text-align: center;}
+            .status-header > div:last-child { text-align: left !important; margin-top: 10px; }
+            .card { padding: 20px; border-radius: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="aurora-bg"><div class="aurora-blob blob-1"></div><div class="aurora-blob blob-2"></div></div>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1>Sunucu Durumu</h1>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 5px;">Sistem Metrikleri ve Donanım Analizi</p>
+            </div>
+            <a href="/" class="back-btn">← Ana Sayfaya Dön</a>
+        </header>
+
+        <main class="grid">
+            <div class="card status-header">
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <div>
+                        <div class="big-val" id="stStatus">Bağlanıyor...</div>
+                        <div class="sub-val">AFL XSM-1 Server</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div class="sub-val">Sistem Açık Kalma Süresi</div>
+                    <div class="big-val" style="font-size: 1.6rem; color: #93c5fd;" id="stUptime">0s</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i style="background: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple);"></i> İşlemci (CPU) Analizi</div>
+                <div class="big-val" id="cpuVal">%0</div>
+                <div class="sub-val" id="cpuModel" style="margin-bottom: 5px; line-height: 1.4;">Yükleniyor...</div>
+                <div id="cpuTags">
+                    <span class="info-tag" id="cpuSpeed">0.00 GHz</span>
+                    <span class="info-tag" id="cpuCores">0 Çekirdek</span>
+                </div>
+                <div class="progress-bg"><div class="progress-bar" id="cpuBar" style="background: linear-gradient(90deg, #c084fc, #d946ef);"></div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i style="background: var(--accent-blue); box-shadow: 0 0 10px var(--accent-blue);"></i> Bellek (RAM) Tüketimi</div>
+                <div class="big-val" id="ramVal">%0</div>
+                <div class="sub-val" id="ramText">0 GB / 0 GB Kullanılıyor</div>
+                <div class="progress-bg"><div class="progress-bar" id="ramBar" style="background: linear-gradient(90deg, #3b82f6, #0ea5e9);"></div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i style="background: #fbbf24; box-shadow: 0 0 10px #fbbf24;"></i> Donanım ve İşletim Sistemi</div>
+                <div style="margin-bottom: 16px;">
+                    <div class="sub-val" style="margin-bottom: 4px;">Ekran Kartı (GPU) Birimi</div>
+                    <div style="font-size: 1.05rem; color: #fff; font-weight: 500;" id="gpuVal">Analiz Ediliyor...</div>
+                </div>
+                <div style="margin-bottom: 16px;">
+                    <div class="sub-val" style="margin-bottom: 4px;">Platform / Çekirdek</div>
+                    <div style="font-size: 1.05rem; color: #fff; font-weight: 500;" id="osVal">Yükleniyor...</div>
+                </div>
+                <div>
+                    <div class="sub-val" style="margin-bottom: 4px;">Node.js Motoru</div>
+                    <div style="font-size: 1.05rem; color: #fff; font-weight: 500;" id="nodeVal">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><i style="background: #f43f5e; box-shadow: 0 0 10px #f43f5e;"></i> Güvenlik & Veritabanı</div>
+                <div style="margin-bottom: 20px;">
+                    <div class="sub-val" style="margin-bottom: 4px;">Sistemdeki Aktif Ödev Sayısı</div>
+                    <div style="font-size: 2rem; color: #fff; font-weight: 700; text-shadow: 0 0 15px rgba(255,255,255,0.2);" id="taskVal">0</div>
+                </div>
+                <div>
+                    <div class="sub-val" style="margin-bottom: 4px;">Engellenen (Banlı) İstemciler</div>
+                    <div style="font-size: 2rem; color: #ef4444; font-weight: 700; text-shadow: 0 0 15px rgba(239, 68, 68, 0.3);" id="banVal">0</div>
+                </div>
+            </div>
+
+            <div class="card logs-card">
+                <div class="card-title"><i style="background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green);"></i> Sistem Geçmişi (Canlı Loglar)</div>
+                <div class="log-list" id="logContainer">
+                    <div class="log-item">Kayıtlar sunucudan çekiliyor...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function formatUptime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h}s ${m}d ${s}sn`;
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                document.getElementById('stStatus').innerText = data.state;
+                document.getElementById('stUptime').innerText = formatUptime(data.uptime);
+                
+                document.getElementById('cpuVal').innerText = `%${data.cpuUsage}`;
+                document.getElementById('cpuModel').innerText = data.cpuInfo;
+                document.getElementById('cpuSpeed').innerText = `${data.cpuSpeed}`;
+                document.getElementById('cpuCores').innerText = `${data.cpuCores} Çekirdek`;
+                document.getElementById('cpuBar').style.width = `${data.cpuUsage}%`;
+                
+                document.getElementById('ramVal').innerText = `%${data.memoryPercent}`;
+                document.getElementById('ramText').innerText = `${data.memoryUsed} GB / ${data.memoryTotal} GB Kullanılıyor`;
+                document.getElementById('ramBar').style.width = `${data.memoryPercent}%`;
+
+                document.getElementById('gpuVal').innerText = data.gpuInfo;
+                document.getElementById('osVal').innerText = data.platform;
+                document.getElementById('nodeVal').innerText = data.nodeVersion;
+
+                document.getElementById('taskVal').innerText = data.activeTasks;
+                document.getElementById('banVal').innerText = data.bannedCount;
+
+                const logContainer = document.getElementById('logContainer');
+                if(data.recentLogs.length > 0) {
+                    logContainer.innerHTML = data.recentLogs.map(log => `<div class="log-item">> ${log}</div>`).join('');
+                } else {
+                    logContainer.innerHTML = `<div class="log-item" style="color:var(--text-muted); border-left-color: transparent;">Henüz kayıtlı işlem yok.</div>`;
+                }
+
+            } catch (err) {
+                document.getElementById('stStatus').innerText = "Bağlantı Koptu";
+                document.getElementById('stStatus').style.color = "#ef4444";
+            }
+        }
+
+        fetchStatus();
+        setInterval(fetchStatus, 2000);
+    </script>
+</body>
+</html>

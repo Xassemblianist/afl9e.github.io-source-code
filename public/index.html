@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AFL 9/E - Öğrenci Panosu</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #030305;
+            --card-bg: rgba(15, 15, 20, 0.55);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-1: #6366f1;
+            --accent-2: #c084fc;
+            --accent-3: #3b82f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 40px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .aurora-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            background: #020203;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            filter: blur(90px);
+            opacity: 0.4;
+            border-radius: 50%;
+            animation: float 15s infinite alternate ease-in-out;
+            will-change: transform;
+        }
+
+        .blob-1 { top: -10%; left: -10%; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent-1), transparent 60%); }
+        .blob-2 { bottom: -10%; right: -10%; width: 70vw; height: 70vw; background: radial-gradient(circle, var(--accent-2), transparent 60%); animation-delay: -5s; }
+        .blob-3 { top: 30%; left: 30%; width: 50vw; height: 50vw; background: radial-gradient(circle, var(--accent-3), transparent 60%); animation-delay: -10s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(50px, 30px) scale(1.1); }
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-area h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #ffffff, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(192, 132, 252, 0.3);
+        }
+
+        .logo-area p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-glow {
+            background: rgba(255,255,255,0.03);
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-glow:hover {
+            border-color: var(--accent-3);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: minmax(180px, auto);
+            gap: 24px;
+        }
+
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            border-left: 1px solid rgba(255,255,255,0.15);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(255,255,255,0.02);
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.2s, border-color 0.2s;
+            transform-style: preserve-3d;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card > * {
+            transform: translateZ(30px);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding-bottom: 15px;
+            color: #fff;
+        }
+
+        .card-title span {
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--accent-1);
+            box-shadow: 0 0 12px var(--accent-1);
+        }
+
+        .hw-module { grid-column: span 8; grid-row: span 2; }
+        .hw-list { display: flex; flex-direction: column; gap: 12px; }
+        .hw-item {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 16px 20px;
+            border-radius: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.3s ease;
+        }
+        .hw-item:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(192, 132, 252, 0.4);
+            transform: translateX(6px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .hw-info h4 { font-size: 1.05rem; margin-bottom: 6px; color: #fff; }
+        .hw-info p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
+        .badge {
+            padding: 6px 12px; font-size: 0.75rem; font-weight: 600;
+            border-radius: 8px; background: rgba(99, 102, 241, 0.15); color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            white-space: nowrap;
+        }
+
+        .weather-module { grid-column: span 4; grid-row: span 1; }
+        .weather-module .card-title span { background: var(--accent-3); box-shadow: 0 0 12px var(--accent-3); }
+        .weather-data {
+            font-family: 'JetBrains Mono', monospace; 
+            background: rgba(0,0,0,0.4);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .weather-main { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+        .temp { font-size: 3rem; font-weight: 700; line-height: 1; color: #93c5fd; text-shadow: 0 0 20px rgba(147, 197, 253, 0.3); }
+        .location { font-size: 0.85rem; color: var(--text-muted); text-align: right; }
+        .weather-stats { display: flex; justify-content: space-between; font-size: 0.85rem; color: #cbd5e1; }
+        .api-note { font-size: 0.7rem; color: var(--accent-2); margin-top: 15px; text-align: right; opacity: 0.8; }
+
+        .about-module { grid-column: span 4; grid-row: span 1; }
+        .about-module .card-title span { background: #10b981; box-shadow: 0 0 12px #10b981; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .stat-box {
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 20px; text-align: center;
+        }
+        .stat-box h2 { font-size: 2rem; margin-bottom: 5px; color: #fff; text-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .stat-box p { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+        .schedule-module { grid-column: span 12; }
+        .schedule-flex { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 15px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.2) transparent;}
+        .schedule-flex::-webkit-scrollbar { height: 6px; }
+        .schedule-flex::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .day-col {
+            flex: 1; min-width: 160px;
+            background: rgba(0,0,0,0.3); border-radius: 16px; padding: 20px; border: 1px solid rgba(255,255,255,0.04);
+            scroll-snap-align: start;
+        }
+        .day-col h4 { text-align: center; margin-bottom: 16px; color: #d8b4fe; font-size: 1rem; font-weight: 600; letter-spacing: 0.5px;}
+        .lesson {
+            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px;
+            margin-bottom: 10px; font-size: 0.85rem; text-align: center; border: 1px solid rgba(255,255,255,0.02);
+            color: #e2e8f0;
+        }
+
+        @media (max-width: 1024px) {
+            .hw-module { grid-column: span 12; grid-row: auto; }
+            .weather-module, .about-module { grid-column: span 6; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 20px 15px; }
+            .aurora-blob { filter: blur(60px); }
+            .blob-1 { width: 100vw; height: 100vw; }
+            .blob-2 { width: 120vw; height: 120vw; }
+            .logo-area h1 { font-size: 2rem; }
+            .weather-module, .about-module { grid-column: span 12; }
+            .header-buttons { flex-direction: column; width: 100%; align-items: stretch; text-align: center; }
+            .hw-item { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .badge { align-self: flex-start; }
+            .glass-card { padding: 20px; border-radius: 20px; }
+            .temp { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="aurora-bg">
+        <div class="aurora-blob blob-1"></div>
+        <div class="aurora-blob blob-2"></div>
+        <div class="aurora-blob blob-3"></div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <h1>AFL 9/E Panosu</h1>
+                <p>Aksu Fen Lisesi Merkezi Yönetim ve Ödev Sistemi</p>
+            </div>
+            <div class="header-buttons">
+                <a href="/status.html" class="btn-glow">
+                     Server Status
+                </a>
+                <a href="/admin.html" class="btn-glow">
+                    Bağlantı: <span style="color: #4ade80; font-weight: 600;">Aktif</span>
+                </a>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            
+            <div class="glass-card tilt-card hw-module">
+                <div class="card-title"><span></span> Aktif Ödevler & Görevler</div>
+                <div class="hw-list" id="hwContainer">
+                    <p style="color:var(--text-muted); padding: 10px;">Veriler sunucudan çekiliyor...</p>
+                </div>
+            </div>
+
+            <div class="glass-card tilt-card weather-module">
+                <div class="card-title"><span></span>Anlık Hava Durumu</div>
+                <div class="weather-data" id="weatherContainer">
+                    <p style="color:var(--text-muted); font-size: 0.9rem;">Hava durumu yükleniyor...</p>
+                </div>
+            </div>
+
+            <div class="glass-card tilt-card about-module">
+                <div class="card-title"><span></span> 9/E İstatistikleri</div>
+                <div class="stat-grid">
+                    <div class="stat-box">
+                        <h2>30</h2>
+                        <p>Öğrenci</p>
+                    </div>
+                    <div class="stat-box">
+                        <h2 id="hwCount">0</h2>
+                        <p>Aktif Ödev</p>
+                    </div>
+                    <div class="stat-box" style="grid-column: span 2;">
+                        <h2 style="font-size: 1.3rem; margin-bottom: 8px;">Aksu Fen Lisesi</h2>
+                        <p>9/E Sınıfı</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card tilt-card schedule-module">
+                <div class="card-title"><span style="background: #fbbf24; box-shadow: 0 0 12px #fbbf24;"></span> Haftalık Ders Programı</div>
+                <div class="schedule-flex">
+                    <div class="day-col">
+                        <h4>Pazartesi</h4>
+                        <div class="lesson">Edebiyat</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">Kimya</div>
+                        <div class="lesson">Kimya</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">Beden Eğitimi</div>
+                        <div class="lesson">Beden Eğitimi</div>
+                    </div>
+                    <div class="day-col">
+                        <h4>Salı</h4>
+                        <div class="lesson">Tarih</div>
+                        <div class="lesson">Tarih</div>
+                        <div class="lesson">İngilizce</div>
+                        <div class="lesson">İngilizce</div>
+                        <div class="lesson">Rehberlik</div>
+                        <div class="lesson">Din Kültürü</div>
+                        <div class="lesson">Almanca</div>
+                        <div class="lesson">Almanca</div>
+                    </div>
+                    <div class="day-col">
+                        <h4>Çarşamba</h4>
+                        <div class="lesson">Edebiyat</div>
+                        <div class="lesson">Edebiyat</div>
+                        <div class="lesson">Fizik</div>
+                        <div class="lesson">Fizik</div>
+                        <div class="lesson">Coğrafya</div>
+                        <div class="lesson">Coğrafya</div>
+                        <div class="lesson">Fizik</div>
+                        <div class="lesson">Biyoloji/Sağlık</div>
+                    </div>
+                    <div class="day-col">
+                        <h4>Perşembe</h4>
+                        <div class="lesson">Din Kültürü</div>
+                        <div class="lesson">Din Kültürü</div>
+                        <div class="lesson">Edebiyat</div>
+                        <div class="lesson">Edebiyat</div>
+                        <div class="lesson">Biyoloji</div>
+                        <div class="lesson">Biyoloji</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">Matematik</div>
+                    </div>
+                    <div class="day-col">
+                        <h4>Cuma</h4>
+                        <div class="lesson">Bilişim</div>
+                        <div class="lesson">Bilişim</div>
+                        <div class="lesson">Resim/Müzik</div>
+                        <div class="lesson">Resim/Müzik</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">Matematik</div>
+                        <div class="lesson">İngilizce</div>
+                        <div class="lesson">İngilizce</div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+        document.querySelectorAll('.tilt-card').forEach(card => {
+            if (!isMobile) {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left; 
+                    const y = e.clientY - rect.top;  
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -6; 
+                    const rotateY = ((x - centerX) / centerX) * 6;
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                });
+            } else {
+                card.addEventListener('touchstart', () => {
+                    card.style.transform = `scale(0.98)`;
+                    card.style.borderColor = `rgba(192, 132, 252, 0.5)`;
+                }, {passive: true});
+                
+                card.addEventListener('touchend', () => {
+                    card.style.transform = `scale(1)`;
+                    card.style.borderColor = `rgba(255, 255, 255, 0.08)`;
+                }, {passive: true});
+            }
+        });
+
+        async function loadData() {
+            try {
+                const hwRes = await fetch('/api/homeworks');
+                const homeworks = await hwRes.json();
+                
+                const hwContainer = document.getElementById('hwContainer');
+                document.getElementById('hwCount').innerText = homeworks.length;
+                
+                if(homeworks.length === 0) {
+                    hwContainer.innerHTML = '<p style="color:var(--text-muted); padding:10px;">Şu an aktif bir ödev bulunmuyor.</p>';
+                } else {
+                    hwContainer.innerHTML = homeworks.map(hw => `
+                        <div class="hw-item">
+                            <div class="hw-info">
+                                <h4>${hw.subject}</h4>
+                                <p>${hw.desc}</p>
+                            </div>
+                            <div class="badge">${hw.date}</div>
+                        </div>
+                    `).join('');
+                }
+
+                const wRes = await fetch('/api/weather');
+                const weather = await wRes.json();
+                
+                document.getElementById('weatherContainer').innerHTML = `
+                    <div class="weather-main">
+                        <div class="temp">${weather.temp}</div>
+                        <div class="location">${weather.location}</div>
+                    </div>
+                    <div class="weather-stats">
+                        <div>Nem: ${weather.humidity}</div>
+                        <div>Rüzgar: ${weather.wind}</div>
+                        <div>Durum: ${weather.status}</div>
+                    </div>
+                    <div class="api-note">Model: XWM by xassemblianist</div>
+                `;
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>

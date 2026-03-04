@@ -1,0 +1,17 @@
+{
+  "homeworks": [
+    {
+      "id": "07a74bae-e90d-4f61-9e5c-e523583197ff",
+      "subject": "BEKİR SELAMLAR",
+      "desc": "BEKİR ÖK SAYGILAR",
+      "date": "SLM",
+      "createdAt": "2026-03-03T10:34:44.041Z"
+    }
+  ],
+  "bannedIPs": [],
+  "logs": [
+    "[02.03.2026 16:47:55] Ödev eklendi: Örnek",
+    "[03.03.2026 05:34:44] Ödev eklendi: BEKİR SELAMLAR",
+    "[03.03.2026 18:26:14] Ödev silindi."
+  ]
+}
